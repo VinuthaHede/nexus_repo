@@ -16,7 +16,7 @@ pipeline {
         NEXUS_REPOSITORY = "WebApplications"
         // Jenkins credential id to authenticate to Nexus OSS
         NEXUS_CREDENTIAL_ID = "nexus_user"
-        //ARTIFACT_VERSION = "${BUILD_NUMBER}"
+        ARTIFACT_VERSION = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -58,6 +58,7 @@ pipeline {
                             protocol: NEXUS_PROTOCOL,
                             nexusUrl: NEXUS_URL,
                             groupId: pom.groupId,
+                            version: ARTIFACT_VERSION,
                             repository: NEXUS_REPOSITORY,
                             credentialsId: NEXUS_CREDENTIAL_ID,
                             artifacts: [
