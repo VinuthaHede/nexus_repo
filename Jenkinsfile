@@ -1,8 +1,8 @@
 pipeline {
     agent any
     tools {
-        maven "localMaven"
-        jdk "Java8"
+        maven "maven"
+        jdk "java17"
     }
 
     environment {
@@ -11,24 +11,24 @@ pipeline {
         // This can be http or https
         NEXUS_PROTOCOL = "http"
         // Where your Nexus is running
-        NEXUS_URL = "65.2.189.169:8081"
+        NEXUS_URL = "13.201.7.172:8081"
         // Repository where we will upload the artifact
-        NEXUS_REPOSITORY = "LoginWebApp"
+        NEXUS_REPOSITORY = "WebApplications"
         // Jenkins credential id to authenticate to Nexus OSS
-        NEXUS_CREDENTIAL_ID = "nexusCredential"
-        ARTIFACT_VERSION = "${BUILD_NUMBER}"
+        NEXUS_CREDENTIAL_ID = "nexus_user"
+        //ARTIFACT_VERSION = "${BUILD_NUMBER}"
     }
 
     stages {
-        stage("Check out") {
+        stage("Checkout") {
             steps {
                 script {
-                    git branch: 'feature/nexusUpload', url: 'https://github.com/ranjit4github/LoginWebApp.git';
+                    git branch: 'master', url: 'https://github.com/VinuthaHede/nexus_repo.git';
                 }
             }
         }
 
-        stage("mvn build") {
+        stage("build") {
             steps {
                 script {
                     sh "mvn clean package"
@@ -36,7 +36,7 @@ pipeline {
             }
         }
 
-        stage("publish to nexus") {
+        stage("publish_to_nexus") {
             steps {
                 script {
                     // Read POM xml file using 'readMavenPom' step , this step 'readMavenPom' is included in: https://plugins.jenkins.io/pipeline-utility-steps
@@ -58,7 +58,6 @@ pipeline {
                             protocol: NEXUS_PROTOCOL,
                             nexusUrl: NEXUS_URL,
                             groupId: pom.groupId,
-                            version: ARTIFACT_VERSION,
                             repository: NEXUS_REPOSITORY,
                             credentialsId: NEXUS_CREDENTIAL_ID,
                             artifacts: [
@@ -74,19 +73,6 @@ pipeline {
                         error "*** File: ${artifactPath}, could not be found";
                     }
                 }
-            }
-        }
-        stage ('Execute Ansible Play - CD'){
-            agent {
-                label 'ansible'
-            }
-            steps{
-                script {
-                    git branch: 'feature/ansibleNexus', url: 'https://github.com/ranjit4github/Ansible_Demo_Project.git';
-                }
-                sh '''
-                    ansible-playbook -e vers=${BUILD_NUMBER} roles/site.yml
-                '''
             }
         }
     }
